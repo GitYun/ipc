@@ -70,10 +70,13 @@ struct cbCallerArgs{
 struct writerArgs{
 	Message* msg;
 	char* path;
+#ifdef _WIN32
+	HANDLE hPipe;
+#endif
 };
 
 struct ConnCallbackElement* cbs[MAX_CB];
-int numCallbacks;
+int numCallbacks = 0;
 
 int nextEmpty(char** strs, int len){
 	int i;
@@ -99,13 +102,13 @@ THREAD_RET_TYPE writer(void* args){
 	struct writerArgs* argz = args;
 
 	#ifdef _WIN32
-		HANDLE hPipe = CreateFile(TEXT(argz->path),
-								GENERIC_READ | GENERIC_WRITE,
-								0,
-								NULL,
-								OPEN_EXISTING,
-								0,
-								NULL);
+		// HANDLE hPipe = CreateFile(TEXT(argz->path),
+		// 						GENERIC_READ | GENERIC_WRITE,
+		// 						0,
+		// 						NULL,
+		// 						OPEN_EXISTING,
+		// 						0,
+		// 						NULL);
 	#else
 		int fd = open(argz->path, O_WRONLY);
 	#endif
@@ -118,7 +121,6 @@ THREAD_RET_TYPE writer(void* args){
 	memcpy(data, argz->msg, sizeof(Message));
 	memcpy((data + sizeof(Message)), argz->msg->data, len - sizeof(Message));
 
-
 	if (argz->msg->type == CONN_TYPE_SUB){
 		data = realloc(data, len + sizeof(size_t) + strlen(argz->msg->subject) + 1);
 		size_t sub_len = strlen(argz->msg->subject) + 1;
@@ -128,8 +130,9 @@ THREAD_RET_TYPE writer(void* args){
 	}
 
 	#ifdef _WIN32
-		WriteFile(hPipe, data, len, NULL, NULL);
-		CloseHandle(hPipe);
+		WriteFile(argz->hPipe, data, len, NULL, NULL);
+		// WriteFile(hPipe, data, len, NULL, NULL);
+		// CloseHandle(hPipe);
 	#else
 		write(fd, data, len);
 		close(fd);
@@ -159,21 +162,25 @@ THREAD_RET_TYPE cbCaller(void* args){
 	return 0;
 }
 
-void dispatch(ConnectionCallback cb, Message* msg){
+TID dispatch(ConnectionCallback cb, Message* msg){
 	struct cbCallerArgs* cbargs = malloc(sizeof(struct cbCallerArgs));
 	cbargs->cb = cb;
 	cbargs->msg = msg;
 
+
+	TID tid = 0;
 	#ifdef _WIN32
 		CreateThread(NULL, 0, cbCaller, cbargs, 0, NULL);
 	#else
-		pthread_t tid;
 		pthread_create(&tid, NULL, cbCaller, cbargs);
 	#endif
+
+	return tid;
 }
 
 THREAD_RET_TYPE dispatcher(void* args){
 	struct dispatcherArgs* argz = args;
+	// TID* cbCallerTids = calloc(100, sizeof(TID));
 
 	#ifdef _WIN32
 		ConnectNamedPipe(argz->hPipe, NULL);
@@ -225,7 +232,8 @@ THREAD_RET_TYPE dispatcher(void* args){
 				ReadFile(argz->hPipe, sub_len, sizeof(size_t), NULL, NULL);
 			#else
 				read(fd, sub_len, sizeof(size_t));
-			#endif
+
+			#endif
 			char* subject = malloc(*sub_len);
 			#ifdef _WIN32
 				ReadFile(argz->hPipe, subject, *sub_len, NULL, NULL);
@@ -233,6 +241,7 @@ THREAD_RET_TYPE dispatcher(void* args){
 				read(fd, subject, *sub_len);
 			#endif
 			msg->subject = subject;
+			free(sub_len);
 		}
 
 		switch (msg->type) {
@@ -262,9 +271,9 @@ THREAD_RET_TYPE dispatcher(void* args){
 
 			usleep(100);
 		}
-
 	}
-	#ifdef _WIN32
+
+	#ifdef _WIN32
 		DisconnectNamedPipe(argz->hPipe);
 	#else
 		close(fd);
@@ -338,8 +347,8 @@ Connection* connectionConnect(char* name, int type){
 
 	#ifdef _WIN32
 		char* path = malloc(strlen(name) + 1 + PIPE_PREFIX_LEN);
-	memcpy(path, PIPE_PREFIX, PIPE_PREFIX_LEN);
-	strcat(path, name);
+		memcpy(path, PIPE_PREFIX, PIPE_PREFIX_LEN);
+		strcat(path, name);
 
 		ret->hPipe = CreateFile(TEXT(path),
 								GENERIC_READ | GENERIC_WRITE,
@@ -369,7 +378,6 @@ void connectionStartAutoDispatch(Connection* conn){
 
 	cbs[i]->args = malloc(sizeof(struct dispatcherArgs));
 
-
 	cbs[i]->args->cont = malloc(sizeof(int));
 	*(cbs[i]->args->cont) = 1;
 
@@ -397,7 +405,8 @@ void connectionStopAutoDispatch(Connection* conn){
 	int i = findInCBSlot(conn);
 
 	*(cbs[i]->args->cont) = 0;
-	#ifdef _WIN32
+
+	#ifdef _WIN32
 		WaitForSingleObject(cbs[i]->tid, INFINITE);
 	#else
 		pthread_join(cbs[i]->tid, NULL);
@@ -413,22 +422,33 @@ void connectionStopAutoDispatch(Connection* conn){
 void connectionSetCallback(Connection* conn, ConnectionCallback cb){
 	int i = findFreeCBSlot();
 
-	cbs[i] = malloc(sizeof(struct ConnCallbackElement));
-	cbs[i]->conn = conn;
-	cbs[i]->cb = cb;
+	if (i != -1 && !cbs[i]) {
+		cbs[i] = malloc(sizeof(struct ConnCallbackElement));
+		cbs[i]->conn = conn;
+		cbs[i]->cb = cb;
+		++numCallbacks;
+	}
 }
 
 ConnectionCallback connectionGetCallback(Connection* conn){
 	int i = findInCBSlot(conn);
 
-	return cbs[i]->cb;
+	if (i != -1) {
+		return cbs[i]->cb;
+	}
+
+	return 0;
 }
 
+/* Call after connectionStopAutoDispatch() and before connectionDestroy() */
 void connectionRemoveCallback(Connection* conn){
 	int i = findInCBSlot(conn);
-
-	free(cbs[i]);
-	cbs[i] = NULL;
+	
+	if (i != -1 && cbs[i]) {
+		free(cbs[i]);
+		cbs[i] = NULL;
+		--numCallbacks;
+	}
 }
 
 void connectionSend(Connection* conn, Message* msg){
@@ -453,10 +473,11 @@ void connectionSend(Connection* conn, Message* msg){
 
 	args->path = path;
 
+	TID tid;
 	#ifdef _WIN32
+		args->hPipe = conn->hPipe;
 		CreateThread(NULL, 0, writer, args, 0, NULL);
 	#else
-		pthread_t tid;
 		pthread_create(&tid, NULL, writer, args);
 	#endif
 }

@@ -1,0 +1,31 @@
+[
+{
+  "directory": "D:\\Downloads\\ReadPaln\\github-repos\\Signal-Libs\\ipc",
+  "arguments": ["D:\\OpenFree\\x86_64-8.1.0-release-posix-seh-rt_v6-rev0\\mingw64\\bin\\x86_64-w64-mingw32-gcc", "-c", "-m64", "-Isrc", "-o", "build\\.objs\\ipc\\mingw\\x86_64\\debug\\src\\connection.c.obj", "src\\connection.c"],
+  "file": "src\\connection.c"
+},
+{
+  "directory": "D:\\Downloads\\ReadPaln\\github-repos\\Signal-Libs\\ipc",
+  "arguments": ["D:\\OpenFree\\x86_64-8.1.0-release-posix-seh-rt_v6-rev0\\mingw64\\bin\\x86_64-w64-mingw32-gcc", "-c", "-m64", "-Isrc", "-o", "build\\.objs\\ipc\\mingw\\x86_64\\debug\\src\\message.c.obj", "src\\message.c"],
+  "file": "src\\message.c"
+},
+{
+  "directory": "D:\\Downloads\\ReadPaln\\github-repos\\Signal-Libs\\ipc",
+  "arguments": ["D:\\OpenFree\\x86_64-8.1.0-release-posix-seh-rt_v6-rev0\\mingw64\\bin\\x86_64-w64-mingw32-gcc", "-c", "-m64", "-Isrc", "-o", "build\\.objs\\sender\\mingw\\x86_64\\debug\\examples\\simple\\sender.c.obj", "examples\\simple\\sender.c"],
+  "file": "examples\\simple\\sender.c"
+},
+{
+  "directory": "D:\\Downloads\\ReadPaln\\github-repos\\Signal-Libs\\ipc",
+  "arguments": ["D:\\OpenFree\\x86_64-8.1.0-release-posix-seh-rt_v6-rev0\\mingw64\\bin\\x86_64-w64-mingw32-gcc", "-c", "-m64", "-Isrc", "-o", "build\\.objs\\recvier\\mingw\\x86_64\\debug\\examples\\simple\\recvier.c.obj", "examples\\simple\\recvier.c"],
+  "file": "examples\\simple\\recvier.c"
+},
+{
+  "directory": "D:\\Downloads\\ReadPaln\\github-repos\\Signal-Libs\\ipc",
+  "arguments": ["D:\\OpenFree\\x86_64-8.1.0-release-posix-seh-rt_v6-rev0\\mingw64\\bin\\x86_64-w64-mingw32-gcc", "-c", "-m64", "-Isrc", "-o", "build\\.objs\\winreader\\mingw\\x86_64\\debug\\examples\\windows\\winreader.c.obj", "examples\\windows\\winreader.c"],
+  "file": "examples\\windows\\winreader.c"
+},
+{
+  "directory": "D:\\Downloads\\ReadPaln\\github-repos\\Signal-Libs\\ipc",
+  "arguments": ["D:\\OpenFree\\x86_64-8.1.0-release-posix-seh-rt_v6-rev0\\mingw64\\bin\\x86_64-w64-mingw32-gcc", "-c", "-m64", "-Isrc", "-o", "build\\.objs\\winwriter\\mingw\\x86_64\\debug\\examples\\windows\\winwriter.c.obj", "examples\\windows\\winwriter.c"],
+  "file": "examples\\windows\\winwriter.c"
+}]
