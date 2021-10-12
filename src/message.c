@@ -3,6 +3,8 @@
 #include <string.h>
 #include "message.h"
 
+#include "connection.h"
+
 Message* messageCreate(char* data, size_t len){
 	Message* ret = malloc(sizeof(Message));
 	ret->data = data;
@@ -27,7 +29,6 @@ void messageSetSubject(Message* msg, char* subject){
 	msg->type = CONN_TYPE_SUB;
 	msg->subject = malloc(strlen(subject) + 1);
 	memcpy(msg->subject, subject, strlen(subject) + 1);
-
 }
 
 void messageDestroy(Message* msg){

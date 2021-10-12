@@ -6,7 +6,7 @@
 int recieved = 0;
 void callback(Message* msg){
     printf(msg->data);
-    recieved = 1;
+    ++recieved;
 }
 
 int main (int argc, char* argv[])
@@ -16,14 +16,13 @@ int main (int argc, char* argv[])
     connectionSetCallback(conn, callback);
     connectionStartAutoDispatch(conn);
 
-    while(!recieved){
-        // usleep(100);
-        Sleep(1);
+    while(recieved < 10){
+        usleep(100);
     }
 
     connectionStopAutoDispatch(conn);
     connectionClose(conn);
-    connectionRemoveCallback(conn);
+    // connectionRemoveCallback(conn);
     connectionDestroy(conn);
 
     return 0;

@@ -2,6 +2,7 @@
     "files.associations": {
         "message.h": "c",
         "streambuf": "c",
-        "system_error": "c"
+        "system_error": "c",
+        "ipc.h": "c"
     }
 }

@@ -38,5 +38,6 @@ int main(int argc, char const *argv[]) {
 	__usleep(1000);
 	messageDestroy(msg);
 
+	connectionClose(conn);
 	connectionDestroy(conn);
 }
