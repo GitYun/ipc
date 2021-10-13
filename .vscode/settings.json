@@ -3,6 +3,8 @@
         "message.h": "c",
         "streambuf": "c",
         "system_error": "c",
-        "ipc.h": "c"
+        "ipc.h": "c",
+        "connection.h": "c",
+        "types.h": "c"
     }
 }

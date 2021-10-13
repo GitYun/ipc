@@ -8,7 +8,7 @@
             "name": "(gdb) Windows 上的 Bash 启动",
             "type": "cppdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/build/mingw/x86_64/debug/recvier.exe",
+            "program": "${workspaceFolder}/build/mingw/x86_64/debug/cpp_reader.exe",
             "args": [],
             "stopAtEntry": false,
             "cwd": "${fileDirname}",
@@ -32,19 +32,20 @@
             "name": "(gdb) 启动",
             "type": "cppdbg",
             "request": "launch",
-            "program": "输入程序名称，例如 ${workspaceFolder}/a.exe",
+            "program": "${workspaceFolder}/build/linux/x86_64/debug/cpp_transceiver",
             "args": [],
             "stopAtEntry": false,
             "cwd": "${fileDirname}",
             "environment": [],
             "externalConsole": false,
             "MIMode": "gdb",
-            "miDebuggerPath": "/path/to/gdb",
+            "miDebuggerPath": "gdb",
             "setupCommands": [
                 {
                     "description": "为 gdb 启用整齐打印",
-                    "text": "-enable-pretty-printing",
-                    "ignoreFailures": true
+                    // "text": "-enable-pretty-printing",
+                    "ignoreFailures": true,
+                    "text": "-gdb-set follow-fork-mode child"
                 }
             ]
         }

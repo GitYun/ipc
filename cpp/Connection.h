@@ -7,7 +7,6 @@
 
 #define MAX_MSG_SIZE 1048576
 
-
 namespace IPC{
 	typedef void (*ConnectionCallback)(IPC::Message msg);
 

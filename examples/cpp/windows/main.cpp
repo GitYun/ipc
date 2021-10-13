@@ -5,6 +5,32 @@
 
 using namespace IPC;
 
+#include <Tlhelp32.h>
+DWORD GetProcessIdByName(LPCTSTR lpszProcessName)
+{
+    HANDLE hSnapshot = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
+    if (hSnapshot == INVALID_HANDLE_VALUE) {
+        return 0;
+    }
+
+    PROCESSENTRY32 pe;
+    pe.dwSize = sizeof(pe);
+
+    if (Process32First(hSnapshot, &pe)) {
+        do {
+            if (lstrcmpi(lpszProcessName, pe.szExeFile) == 0) {
+                CloseHandle(hSnapshot);
+                return pe.th32ProcessID;
+            }
+        } while(Process32Next(hSnapshot, &pe));
+    }
+
+    CloseHandle(hSnapshot);
+    return 0;
+}
+
+#define getppid() GetProcessIdByName(TEXT("cpp_reader.exe"))
+
 int recived = 0;
 
 void recive(Message msg){
@@ -13,7 +39,7 @@ void recive(Message msg){
 	recived++;
 }
 
-void parent(Connection conn){
+void reader(Connection& conn){
 	conn.setCallback(recive);
 	conn.startAutoDispatch();
 
@@ -41,7 +67,7 @@ void parent(Connection conn){
 	conn.close();
 }
 
-void child(Connection conn){
+void writer(Connection& conn){
 	{
 		char* str = "This string was sent over IPC using named pipes!";
 		Message msg(str, strlen(str)+1);
@@ -99,15 +125,15 @@ void child(Connection conn){
 
 
 int main(int argc, char const *argv[]) {
-	Connection conn("ipcdemo", CONN_TYPE_PID);
+#if WRITER_PROCESS == 1
+	Connection conn("ipcdemo", CONN_TYPE_PID, 0);
 
-	pid_t pid = fork();
+    writer(conn);
+#else
+    Connection conn("ipcdemo", CONN_TYPE_PID, 1);
 
-	if (pid == 0){
-		child(conn); // Call `Connection(const Connection &obj)' constructor
-	}else{
-		parent(conn);
-	}
+    reader(conn);
+#endif
 
 	return 0;
 }

@@ -1,6 +1,36 @@
 [
 {
   "directory": "D:\\Downloads\\ReadPaln\\github-repos\\Signal-Libs\\ipc",
+  "arguments": ["D:\\OpenFree\\x86_64-8.1.0-release-posix-seh-rt_v6-rev0\\mingw64\\bin\\x86_64-w64-mingw32-gcc", "-c", "-m64", "-Isrc", "-o", "build\\.objs\\recvier\\mingw\\x86_64\\debug\\examples\\simple\\recvier.c.obj", "examples\\simple\\recvier.c"],
+  "file": "examples\\simple\\recvier.c"
+},
+{
+  "directory": "D:\\Downloads\\ReadPaln\\github-repos\\Signal-Libs\\ipc",
+  "arguments": ["D:\\OpenFree\\x86_64-8.1.0-release-posix-seh-rt_v6-rev0\\mingw64\\bin\\x86_64-w64-mingw32-g++", "-c", "-m64", "-Icpp", "-Icommon", "-Isrc", "-o", "build\\.objs\\ipc_cpp\\mingw\\x86_64\\debug\\cpp\\Connection.cpp.obj", "cpp\\Connection.cpp"],
+  "file": "cpp\\Connection.cpp"
+},
+{
+  "directory": "D:\\Downloads\\ReadPaln\\github-repos\\Signal-Libs\\ipc",
+  "arguments": ["D:\\OpenFree\\x86_64-8.1.0-release-posix-seh-rt_v6-rev0\\mingw64\\bin\\x86_64-w64-mingw32-g++", "-c", "-m64", "-Icpp", "-Icommon", "-Isrc", "-o", "build\\.objs\\ipc_cpp\\mingw\\x86_64\\debug\\cpp\\Message.cpp.obj", "cpp\\Message.cpp"],
+  "file": "cpp\\Message.cpp"
+},
+{
+  "directory": "D:\\Downloads\\ReadPaln\\github-repos\\Signal-Libs\\ipc",
+  "arguments": ["D:\\OpenFree\\x86_64-8.1.0-release-posix-seh-rt_v6-rev0\\mingw64\\bin\\x86_64-w64-mingw32-gcc", "-c", "-m64", "-Icpp", "-Icommon", "-Isrc", "-o", "build\\.objs\\ipc_cpp\\mingw\\x86_64\\debug\\common\\hashtable.c.obj", "common\\hashtable.c"],
+  "file": "common\\hashtable.c"
+},
+{
+  "directory": "D:\\Downloads\\ReadPaln\\github-repos\\Signal-Libs\\ipc",
+  "arguments": ["D:\\OpenFree\\x86_64-8.1.0-release-posix-seh-rt_v6-rev0\\mingw64\\bin\\x86_64-w64-mingw32-gcc", "-c", "-m64", "-Icpp", "-Icommon", "-Isrc", "-o", "build\\.objs\\ipc_cpp\\mingw\\x86_64\\debug\\src\\connection.c.obj", "src\\connection.c"],
+  "file": "src\\connection.c"
+},
+{
+  "directory": "D:\\Downloads\\ReadPaln\\github-repos\\Signal-Libs\\ipc",
+  "arguments": ["D:\\OpenFree\\x86_64-8.1.0-release-posix-seh-rt_v6-rev0\\mingw64\\bin\\x86_64-w64-mingw32-gcc", "-c", "-m64", "-Icpp", "-Icommon", "-Isrc", "-o", "build\\.objs\\ipc_cpp\\mingw\\x86_64\\debug\\src\\message.c.obj", "src\\message.c"],
+  "file": "src\\message.c"
+},
+{
+  "directory": "D:\\Downloads\\ReadPaln\\github-repos\\Signal-Libs\\ipc",
   "arguments": ["D:\\OpenFree\\x86_64-8.1.0-release-posix-seh-rt_v6-rev0\\mingw64\\bin\\x86_64-w64-mingw32-gcc", "-c", "-m64", "-Isrc", "-o", "build\\.objs\\ipc\\mingw\\x86_64\\debug\\src\\connection.c.obj", "src\\connection.c"],
   "file": "src\\connection.c"
 },
@@ -11,13 +41,18 @@
 },
 {
   "directory": "D:\\Downloads\\ReadPaln\\github-repos\\Signal-Libs\\ipc",
-  "arguments": ["D:\\OpenFree\\x86_64-8.1.0-release-posix-seh-rt_v6-rev0\\mingw64\\bin\\x86_64-w64-mingw32-gcc", "-c", "-m64", "-Isrc", "-o", "build\\.objs\\sender\\mingw\\x86_64\\debug\\examples\\simple\\sender.c.obj", "examples\\simple\\sender.c"],
-  "file": "examples\\simple\\sender.c"
+  "arguments": ["D:\\OpenFree\\x86_64-8.1.0-release-posix-seh-rt_v6-rev0\\mingw64\\bin\\x86_64-w64-mingw32-g++", "-c", "-m64", "-Icpp", "-o", "build\\.objs\\cpp_transceiver\\mingw\\x86_64\\debug\\examples\\cpp\\linux\\main.cpp.obj", "examples\\cpp\\linux\\main.cpp"],
+  "file": "examples\\cpp\\linux\\main.cpp"
 },
 {
   "directory": "D:\\Downloads\\ReadPaln\\github-repos\\Signal-Libs\\ipc",
-  "arguments": ["D:\\OpenFree\\x86_64-8.1.0-release-posix-seh-rt_v6-rev0\\mingw64\\bin\\x86_64-w64-mingw32-gcc", "-c", "-m64", "-Isrc", "-o", "build\\.objs\\recvier\\mingw\\x86_64\\debug\\examples\\simple\\recvier.c.obj", "examples\\simple\\recvier.c"],
-  "file": "examples\\simple\\recvier.c"
+  "arguments": ["D:\\OpenFree\\x86_64-8.1.0-release-posix-seh-rt_v6-rev0\\mingw64\\bin\\x86_64-w64-mingw32-g++", "-c", "-m64", "-Icpp", "-DWRITER_PROCESS=0", "-o", "build\\.objs\\cpp_reader\\mingw\\x86_64\\debug\\examples\\cpp\\windows\\main.cpp.obj", "examples\\cpp\\windows\\main.cpp"],
+  "file": "examples\\cpp\\windows\\main.cpp"
+},
+{
+  "directory": "D:\\Downloads\\ReadPaln\\github-repos\\Signal-Libs\\ipc",
+  "arguments": ["D:\\OpenFree\\x86_64-8.1.0-release-posix-seh-rt_v6-rev0\\mingw64\\bin\\x86_64-w64-mingw32-gcc", "-c", "-m64", "-Isrc", "-o", "build\\.objs\\winwriter\\mingw\\x86_64\\debug\\examples\\windows\\winwriter.c.obj", "examples\\windows\\winwriter.c"],
+  "file": "examples\\windows\\winwriter.c"
 },
 {
   "directory": "D:\\Downloads\\ReadPaln\\github-repos\\Signal-Libs\\ipc",
@@ -26,6 +61,11 @@
 },
 {
   "directory": "D:\\Downloads\\ReadPaln\\github-repos\\Signal-Libs\\ipc",
-  "arguments": ["D:\\OpenFree\\x86_64-8.1.0-release-posix-seh-rt_v6-rev0\\mingw64\\bin\\x86_64-w64-mingw32-gcc", "-c", "-m64", "-Isrc", "-o", "build\\.objs\\winwriter\\mingw\\x86_64\\debug\\examples\\windows\\winwriter.c.obj", "examples\\windows\\winwriter.c"],
-  "file": "examples\\windows\\winwriter.c"
+  "arguments": ["D:\\OpenFree\\x86_64-8.1.0-release-posix-seh-rt_v6-rev0\\mingw64\\bin\\x86_64-w64-mingw32-g++", "-c", "-m64", "-Icpp", "-DWRITER_PROCESS=1", "-o", "build\\.objs\\cpp_writer\\mingw\\x86_64\\debug\\examples\\cpp\\windows\\main.cpp.obj", "examples\\cpp\\windows\\main.cpp"],
+  "file": "examples\\cpp\\windows\\main.cpp"
+},
+{
+  "directory": "D:\\Downloads\\ReadPaln\\github-repos\\Signal-Libs\\ipc",
+  "arguments": ["D:\\OpenFree\\x86_64-8.1.0-release-posix-seh-rt_v6-rev0\\mingw64\\bin\\x86_64-w64-mingw32-gcc", "-c", "-m64", "-Isrc", "-o", "build\\.objs\\sender\\mingw\\x86_64\\debug\\examples\\simple\\sender.c.obj", "examples\\simple\\sender.c"],
+  "file": "examples\\simple\\sender.c"
 }]

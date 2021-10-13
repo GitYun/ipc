@@ -112,14 +112,22 @@ static THREAD_RET_TYPE writer(void *args) {
     struct writerArgs *argz = args;
 
 #ifdef _WIN32
-    // In `connectionConnect()', pipe has been opened
-    // HANDLE hPipe = CreateFile(TEXT(argz->path),
-    //                           GENERIC_READ | GENERIC_WRITE,
-    //                           0,
-    //                           NULL,
-    //                           OPEN_EXISTING,
-    //                           0,
-    //                           NULL);
+    // In `connectionConnect()', pipe has been opened, then `hPipe' is invaild;
+    // If server unconnect the pipe, then `hPipe' is vaild and `argz->hPipe' is invaild
+    HANDLE hPipe = CreateFile(TEXT(argz->path),
+                              GENERIC_READ | GENERIC_WRITE,
+                              0,
+                              NULL,
+                              OPEN_EXISTING,
+                              FILE_ATTRIBUTE_NORMAL,
+                              NULL);
+    
+    // When `hPipe' is vaild and `argz->hPipe' is invaild,
+    // then store `hPipe' to `argz->hPipe'
+    if (hPipe != INVALID_HANDLE_VALUE) {
+        CloseHandle(argz->hPipe);
+        argz->hPipe = hPipe;
+    }
 #else
     int fd = open(argz->path, O_WRONLY);
 #endif
@@ -193,6 +201,7 @@ static THREAD_RET_TYPE dispatcher(void *args) {
     // TID* cbCallerTids = calloc(100, sizeof(TID));
 
 #ifdef _WIN32
+    // Don't block, because 'CreateNamedPipe()' use `PIPE_NOWAIT' attribute
     ConnectNamedPipe(argz->hPipe, NULL);
 #else
     int fd = open(argz->path, O_RDONLY | O_NONBLOCK);
@@ -201,7 +210,7 @@ static THREAD_RET_TYPE dispatcher(void *args) {
     while (*(argz->cont)) {
         Message *msg = malloc(sizeof(Message));
 
-#ifdef _WIN32
+#ifdef _WIN32        
         int code = ReadFile(argz->hPipe, msg, sizeof(Message), NULL, NULL);
         if (code == -1) {
             code = 0;
@@ -231,6 +240,7 @@ static THREAD_RET_TYPE dispatcher(void *args) {
         }
         else {
             free(msg);
+            usleep(10);
             continue;
         }
 
@@ -326,9 +336,13 @@ Connection *connectionCreate(char *name, int type) {
     strcat(path, name);
 
 #ifdef _WIN32
+    // WaitNamedPipe(TEXT(path), NULL);
+
+    // Don't block, because use `PIPE_NOWAIT' attribute,
+    // and also `ReadFile()', `ConnectNamedPipe()' don't block
     ret->hPipe = CreateNamedPipe(TEXT(path),
-                                 PIPE_ACCESS_DUPLEX | PIPE_TYPE_BYTE | PIPE_READMODE_BYTE,
-                                 PIPE_NOWAIT,
+                                 PIPE_ACCESS_DUPLEX,
+                                 PIPE_TYPE_BYTE | PIPE_READMODE_BYTE | PIPE_NOWAIT,
                                  1,
                                  1024 * 16,
                                  1024 * 16,
@@ -368,7 +382,7 @@ Connection *connectionConnect(char *name, int type) {
                             0,
                             NULL,
                             OPEN_EXISTING,
-                            0,
+                            FILE_ATTRIBUTE_NORMAL,
                             NULL);
 
     free(path);

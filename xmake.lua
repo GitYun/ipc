@@ -33,6 +33,34 @@ target("recvier")
 
     add_deps("ipc")
 
+target("ipc_cpp")
+    set_kind("static")
+    add_files("cpp/*.cpp", "common/hashtable.c")
+    add_files("src/*.c")
+    add_includedirs("cpp", "common", "src")
+
+target("cpp_transceiver")
+    set_kind("binary")
+    add_files("examples/cpp/linux/main.cpp")
+    add_includedirs("cpp")
+
+    add_links("pthread")
+    add_deps("ipc_cpp")
+
+target("cpp_reader")
+    set_kind("binary")
+    add_defines("WRITER_PROCESS=0")
+    add_files("examples/cpp/windows/main.cpp")
+    add_includedirs("cpp")
+    add_deps("ipc_cpp")
+
+target("cpp_writer")
+    set_kind("binary")
+    add_defines("WRITER_PROCESS=1")
+    add_files("examples/cpp/windows/main.cpp")
+    add_includedirs("cpp")
+    add_deps("ipc_cpp")
+
 --
 -- If you want to known more usage about xmake, please see https://xmake.io
 --
