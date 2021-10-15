@@ -26,7 +26,7 @@ namespace IPC{
 		void setCallback(const ConnectionCallback& cb);
 		ConnectionCallback& getCallback();
 		void removeCallback();
-		void send(Message msg);
+		intptr_t send(Message msg);
 		void subscribe(char* subject);
 		void removeSubscription(char* subject);
 		void close();

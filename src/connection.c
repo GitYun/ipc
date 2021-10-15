@@ -28,11 +28,9 @@
 
 #ifdef _WIN32
     #define getpid GetCurrentProcessId
-    #define TID HANDLE
     #define THREAD_RET_TYPE DWORD WINAPI
     #define PIPE_PREFIX "\\\\.\\pipe\\"
 #else
-    #define TID pthread_t
     #define THREAD_RET_TYPE void *
     #define PIPE_PREFIX "/tmp/"
 #endif
@@ -102,6 +100,8 @@ static int nextEmpty(char **strs, int len) {
 
 static int findEqual(char **strs, char *other, int len) {
     int i;
+    if (!other) return -1;
+
     for (i = 0; i < len; i++) {
         if (strs[i] && strcmp(strs[i], other) == 0) {
             return i;
@@ -150,7 +150,13 @@ static THREAD_RET_TYPE writer(void *args) {
     }
 
 #ifdef _WIN32
-    WriteFile(argz->hPipe, data, len, NULL, NULL);
+    DWORD nbr_writed;
+    while (len > 0) {
+        if (0 == WriteFile(argz->hPipe, data, len, &nbr_writed, NULL)) {
+            break;
+        }
+        len -= nbr_writed;
+    }
     // WriteFile(hPipe, data, len, NULL, NULL);
     // CloseHandle(hPipe);
 #else
@@ -221,12 +227,14 @@ static THREAD_RET_TYPE dispatcher(void *args) {
 
 #ifdef _WIN32        
         int code = ReadFile(argz->hPipe, msg, sizeof(Message), NULL, NULL);
+#else
+        int code = read(fd, msg, sizeof(Message));
+
         if (code == -1) {
             code = 0;
         }
-#else
-        int code = read(fd, msg, sizeof(Message));
 #endif
+
 
         char *data;
         if (code && msg->len < MAX_MSG_SIZE) {
@@ -254,22 +262,30 @@ static THREAD_RET_TYPE dispatcher(void *args) {
         }
 
         if (msg->type == CONN_TYPE_SUB) {
-            size_t *sub_len = malloc(sizeof(size_t));
+            size_t sub_len = 0;
 #ifdef _WIN32
-            ReadFile(argz->hPipe, sub_len, sizeof(size_t), NULL, NULL);
+            DWORD readed_sub_len = 0;
+            DWORD read_len = sizeof(size_t);
+            while (read_len > 0) {
+                if (0 == ReadFile(argz->hPipe, &sub_len, sizeof(size_t), &readed_sub_len, NULL)) {
+                    break;
+                }
+                read_len -= readed_sub_len;
+            }
 #else
-            read(fd, sub_len, sizeof(size_t));
-
+            read(fd, &sub_len, sizeof(size_t));
 #endif
-            char *subject = malloc(*sub_len);
 
+            char *subject = malloc(sub_len);
+            if (subject) {
 #ifdef _WIN32
-            ReadFile(argz->hPipe, subject, *sub_len, NULL, NULL);
+            ReadFile(argz->hPipe, subject, sub_len, NULL, NULL);
 #else
             read(fd, subject, *sub_len);
 #endif
+            }
+
             msg->subject = subject;
-            free(sub_len);
         }
 
         switch (msg->type) {
@@ -495,7 +511,7 @@ void connectionRemoveCallback(Connection *conn) {
     }
 }
 
-void connectionSend(Connection *conn, Message *msg) {
+TID connectionSend(Connection *conn, Message *msg) {
     char *path = malloc(strlen(conn->name) + 1 + PIPE_PREFIX_LEN);
     memcpy(path, PIPE_PREFIX, PIPE_PREFIX_LEN);
     strcat(path, conn->name);
@@ -524,6 +540,8 @@ void connectionSend(Connection *conn, Message *msg) {
 #else
     pthread_create(&tid, NULL, writer, args);
 #endif
+
+    return tid;
 }
 
 void connectionSubscribe(Connection *conn, char *subject) {

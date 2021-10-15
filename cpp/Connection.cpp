@@ -85,9 +85,9 @@ void IPC::Connection::removeCallback()
 	}
 }
 
-void IPC::Connection::send(Message msg)
+intptr_t IPC::Connection::send(Message msg)
 {
-	connectionSend((IPC_Connection*) ptr, (IPC_Message*) msg.getCPointer());
+	return (intptr_t)connectionSend((IPC_Connection*) ptr, (IPC_Message*) msg.getCPointer());
 }
 
 void IPC::Connection::subscribe(char* subject)

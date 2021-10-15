@@ -3,8 +3,10 @@
 
 #ifdef _WIN32
 #include <windows.h>
-
+#define TID HANDLE
 void usleep(__int64 usec);
+#else
+#define TID pthread_t
 #endif
 
 typedef enum {
@@ -91,8 +93,9 @@ void connectionRemoveCallback(Connection* conn);
  * @author vemagic (admin@vamgic.com)
  * @param conn Pointer to a connection instance
  * @param msg Subscriber name string
+ * @return A thread id
  */
-void connectionSend(Connection* conn, Message* msg);
+TID connectionSend(Connection* conn, Message* msg);
 
 /**
  * @brief Set a subscriber name
