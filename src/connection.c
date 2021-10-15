@@ -235,7 +235,6 @@ static THREAD_RET_TYPE dispatcher(void *args) {
         }
 #endif
 
-
         char *data;
         if (code && msg->len < MAX_MSG_SIZE) {
             data = malloc(msg->len + sizeof(size_t));
@@ -320,6 +319,7 @@ static THREAD_RET_TYPE dispatcher(void *args) {
     }
 
 #ifdef _WIN32
+    FlushFileBuffers(argz->hPipe);
     DisconnectNamedPipe(argz->hPipe);
     _endthread();
 #else
