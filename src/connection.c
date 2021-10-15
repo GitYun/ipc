@@ -1,8 +1,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#ifndef _WIN32
-#include <unistd.h>
+#ifdef _WIN32
+#include <process.h>
+#else
+#include <unistd.h> // has usleep()
 #endif
 
 #include <string.h>
@@ -162,6 +164,10 @@ static THREAD_RET_TYPE writer(void *args) {
     messageDestroy(argz->msg);
     free(argz);
 
+#ifdef _WIN32
+    _endthread();
+#endif
+
     return 0;
 }
 
@@ -178,6 +184,9 @@ static THREAD_RET_TYPE cbCaller(void *args) {
     free(argz->msg);
     free(argz);
 
+#ifdef _WIN32
+    _endthread();
+#endif
     return 0;
 }
 
@@ -188,7 +197,7 @@ static TID dispatch(ConnectionCallback cb, Message *msg) {
 
     TID tid = 0;
 #ifdef _WIN32
-    tid = CreateThread(NULL, 0, cbCaller, cbargs, 0, NULL);
+    tid = _beginthread(cbCaller, 0, cbargs);
 #else
     pthread_create(&tid, NULL, cbCaller, cbargs);
 #endif
@@ -296,6 +305,7 @@ static THREAD_RET_TYPE dispatcher(void *args) {
 
 #ifdef _WIN32
     DisconnectNamedPipe(argz->hPipe);
+    _endthread();
 #else
     close(fd);
 #endif
@@ -318,7 +328,7 @@ static int findFreeCBSlot() {
 static int findInCBSlot(Connection *conn) {
     int i;
     for (i = 0; i < MAX_CB; i++) {
-        if (cbs[i]->conn == conn) {
+        if (cbs[i] && cbs[i]->conn == conn) {
             return i;
         }
     }
@@ -422,7 +432,7 @@ void connectionStartAutoDispatch(Connection *conn) {
     cbs[i]->args->numSubs = &(conn->numSubs);
 
 #ifdef _WIN32
-    cbs[i]->tid = CreateThread(NULL, 0, dispatcher, cbs[i]->args, 0, NULL);
+    cbs[i]->tid = (TID)_beginthread(dispatcher, 0, cbs[i]->args);
 #else
     pthread_create(&(cbs[i]->tid), NULL, dispatcher, cbs[i]->args);
 #endif
@@ -506,7 +516,7 @@ void connectionSend(Connection *conn, Message *msg) {
     TID tid;
 #ifdef _WIN32
     args->hPipe = conn->hPipe;
-    tid = CreateThread(NULL, 0, writer, args, 0, NULL);
+    tid = _beginthread(writer, 0, args);
 #else
     pthread_create(&tid, NULL, writer, args);
 #endif
@@ -563,10 +573,6 @@ void connectionDestroy(Connection *conn) {
         }
     }
     free(conn->subscriptions);
-
-    while (numCallbacks > 0) {
-        connectionRemoveCallback(conn);
-    }
 
     free(conn->name);
     free(conn);

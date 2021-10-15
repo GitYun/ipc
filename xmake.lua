@@ -61,6 +61,19 @@ target("cpp_writer")
     add_includedirs("cpp")
     add_deps("ipc_cpp")
 
+target("cpp_multi_reader")
+    set_kind("binary")
+    add_defines("WRITER_PROCESS=0")
+    add_files("examples/cpp/windows/multi_instance.cpp")
+    add_includedirs("cpp")
+    add_deps("ipc_cpp")
+
+target("cpp_multi_writer")
+    set_kind("binary")
+    add_defines("WRITER_PROCESS=1")
+    add_files("examples/cpp/windows/multi_instance.cpp")
+    add_includedirs("cpp")
+    add_deps("ipc_cpp")
 --
 -- If you want to known more usage about xmake, please see https://xmake.io
 --
