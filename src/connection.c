@@ -413,6 +413,8 @@ Connection *connectionConnect(char *name, int type) {
 void connectionStartAutoDispatch(Connection *conn) {
     int i = findInCBSlot(conn);
 
+    if (i == -1) return;
+
     cbs[i]->args = malloc(sizeof(struct dispatcherArgs));
 
     cbs[i]->args->cont = malloc(sizeof(int));
@@ -441,6 +443,8 @@ void connectionStartAutoDispatch(Connection *conn) {
 void connectionStopAutoDispatch(Connection *conn)
 {
     int i = findInCBSlot(conn);
+
+    if (i == -1) return;
 
     *(cbs[i]->args->cont) = 0;
 
@@ -483,7 +487,7 @@ ConnectionCallback connectionGetCallback(Connection *conn) {
 void connectionRemoveCallback(Connection *conn) {
     int i = findInCBSlot(conn);
 
-    if (i != -1 && cbs[i]) {
+    if (i != -1) {
         // In `connectionStopAutoDispatch()', the `cbs[i]->args' memory has been released
         free(cbs[i]);
         cbs[i] = NULL;
