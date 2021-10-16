@@ -67,7 +67,7 @@ struct dispatcherArgs {
 #else
     char *path;
 #endif
-    int *cont; /**< continue: Used to indicate whether the scheduler thread is running; 1: running, 0: stop */
+    char dispatcher_running; /**< Used to indicate whether the scheduler thread is running; 1: running, 0: stop */
     char **subs; /**< Copies of \ref Connection structure member `subscriptions' */
     int *numSubs; /**< Copies of  \ref Connection structure member `numSubs' */
 };
@@ -134,8 +134,8 @@ static THREAD_RET_TYPE writer(void *args) {
     int fd = open(argz->path, O_WRONLY);
 #endif
 
-    size_t *name_len = argz->msg->data + argz->msg->len;
-    size_t len = sizeof(Message) + argz->msg->len + sizeof(size_t) + *name_len;
+    size_t name_len = *(size_t *)(argz->msg->data + argz->msg->len);
+    size_t len = sizeof(Message) + argz->msg->len + sizeof(size_t) + name_len;
     char *data = malloc(len);
 
     memcpy(data, argz->msg, sizeof(Message));
@@ -222,10 +222,10 @@ static THREAD_RET_TYPE dispatcher(void *args) {
     int fd = open(argz->path, O_RDONLY | O_NONBLOCK);
 #endif
 
-    while (*(argz->cont)) {
+    while (argz->dispatcher_running) {
         Message *msg = malloc(sizeof(Message));
 
-#ifdef _WIN32        
+#ifdef _WIN32
         int code = ReadFile(argz->hPipe, msg, sizeof(Message), NULL, NULL);
 #else
         int code = read(fd, msg, sizeof(Message));
@@ -244,12 +244,12 @@ static THREAD_RET_TYPE dispatcher(void *args) {
             read(fd, data, msg->len + sizeof(size_t));
 #endif
 
-            size_t *name_len = data + msg->len;
-            data = realloc(data, msg->len + sizeof(size_t) + *name_len);
+            size_t name_len = *(size_t *)(data + msg->len);
+            data = realloc(data, msg->len + sizeof(size_t) + name_len);
 #ifdef _WIN32
-            ReadFile(argz->hPipe, data + msg->len + sizeof(size_t), *name_len, NULL, NULL);
+            ReadFile(argz->hPipe, data + msg->len + sizeof(size_t), name_len, NULL, NULL);
 #else
-            read(fd, data + msg->len + sizeof(size_t), *name_len);
+            read(fd, data + msg->len + sizeof(size_t), name_len);
 #endif
 
             msg->data = data;
@@ -263,14 +263,7 @@ static THREAD_RET_TYPE dispatcher(void *args) {
         if (msg->type == CONN_TYPE_SUB) {
             size_t sub_len = 0;
 #ifdef _WIN32
-            DWORD readed_sub_len = 0;
-            DWORD read_len = sizeof(size_t);
-            while (read_len > 0) {
-                if (0 == ReadFile(argz->hPipe, &sub_len, sizeof(size_t), &readed_sub_len, NULL)) {
-                    break;
-                }
-                read_len -= readed_sub_len;
-            }
+            ReadFile(argz->hPipe, &sub_len, sizeof(size_t), NULL, NULL);
 #else
             read(fd, &sub_len, sizeof(size_t));
 #endif
@@ -362,8 +355,6 @@ Connection *connectionCreate(char *name, int type) {
     strcat(path, name);
 
 #ifdef _WIN32
-    // WaitNamedPipe(TEXT(path), NULL);
-
     // Don't block, because use `PIPE_NOWAIT' attribute,
     // and also `ReadFile()', `ConnectNamedPipe()' don't block
     ret->hPipe = CreateNamedPipe(TEXT(path),
@@ -433,8 +424,7 @@ void connectionStartAutoDispatch(Connection *conn) {
 
     cbs[i]->args = malloc(sizeof(struct dispatcherArgs));
 
-    cbs[i]->args->cont = malloc(sizeof(int));
-    *(cbs[i]->args->cont) = 1;
+    cbs[i]->args->dispatcher_running = 1;
 
 #ifdef _WIN32
     cbs[i]->args->hPipe = conn->hPipe;
@@ -445,6 +435,7 @@ void connectionStartAutoDispatch(Connection *conn) {
 #endif
 
     cbs[i]->args->cb = cbs[i]->cb;
+    cbs[i]->args->type = conn->type;
 
     cbs[i]->args->subs = conn->subscriptions;
     cbs[i]->args->numSubs = &(conn->numSubs);
@@ -462,20 +453,22 @@ void connectionStopAutoDispatch(Connection *conn)
 
     if (i == -1) return;
 
-    *(cbs[i]->args->cont) = 0;
+    cbs[i]->args->dispatcher_running = 0;
 
 #ifdef _WIN32
-    WaitForSingleObject(cbs[i]->tid, INFINITE);
+    if (cbs[i]->tid != INVALID_HANDLE_VALUE) {
+        WaitForSingleObject(cbs[i]->tid, INFINITE);
+    }
 #else
     pthread_join(cbs[i]->tid, NULL);
 #endif
 
-    free(cbs[i]->args->cont);
-
 #ifndef _WIN32
     free(cbs[i]->args->path);
+    cbs[i]->args->path = NULL;
 #endif
     free(cbs[i]->args);
+    cbs[i]->args = NULL;
 }
 
 void connectionSetCallback(Connection *conn, ConnectionCallback cb) {
@@ -485,6 +478,12 @@ void connectionSetCallback(Connection *conn, ConnectionCallback cb) {
         cbs[i] = malloc(sizeof(struct ConnCallbackElement));
         cbs[i]->conn = conn;
         cbs[i]->cb = cb;
+#ifdef _WIN32
+        cbs[i]->tid = INVALID_HANDLE_VALUE;
+#else        
+        cbs[i]->tid = 0;
+#endif
+        cbs[i]->args = NULL;
         ++numCallbacks;
     }
 }
@@ -575,6 +574,7 @@ void connectionClose(Connection *conn) {
 #ifdef _WIN32
     if (conn->hPipe != INVALID_HANDLE_VALUE) {
         CloseHandle(conn->hPipe);
+        conn->hPipe = NULL;
     }
 #else
     char *path = malloc(strlen(conn->name) + 1 + PIPE_PREFIX_LEN);
