@@ -81,7 +81,7 @@ struct writerArgs {
     Message *msg;
     char *path;
 #ifdef _WIN32
-    HANDLE hPipe;
+    HANDLE *hPipePtr;
 #endif
 };
 
@@ -127,8 +127,8 @@ static THREAD_RET_TYPE writer(void *args) {
     // When `hPipe' is vaild and `argz->hPipe' is invaild,
     // then store `hPipe' to `argz->hPipe'
     if (hPipe != INVALID_HANDLE_VALUE) {
-        CloseHandle(argz->hPipe);
-        argz->hPipe = hPipe;
+        CloseHandle(*argz->hPipePtr);
+        *argz->hPipePtr = hPipe;
     }
 #else
     int fd = open(argz->path, O_WRONLY);
@@ -152,7 +152,7 @@ static THREAD_RET_TYPE writer(void *args) {
 #ifdef _WIN32
     DWORD nbr_writed;
     while (len > 0) {
-        if (0 == WriteFile(argz->hPipe, data, len, &nbr_writed, NULL)) {
+        if (0 == WriteFile(*argz->hPipePtr, data, len, &nbr_writed, NULL)) {
             break;
         }
         len -= nbr_writed;
@@ -534,7 +534,7 @@ TID connectionSend(Connection *conn, Message *msg) {
 
     TID tid;
 #ifdef _WIN32
-    args->hPipe = conn->hPipe;
+    args->hPipePtr = &conn->hPipe;
     tid = _beginthread(writer, 0, args);
 #else
     pthread_create(&tid, NULL, writer, args);

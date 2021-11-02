@@ -11,7 +11,7 @@
 
 namespace IPC{
 	// typedef void (*ConnectionCallback)(IPC::Message msg);
-	using ConnectionCallback = std::function<void (IPC::Message)>;
+	using ConnectionCallback = std::function<void (IPC::Message&)>;
 
 	class Connection{
 	public:
