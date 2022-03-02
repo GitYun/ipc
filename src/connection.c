@@ -203,7 +203,7 @@ static TID dispatch(ConnectionCallback cb, Message *msg) {
 
     TID tid = 0;
 #ifdef _WIN32
-    tid = _beginthread(cbCaller, 0, cbargs);
+    tid = (TID)_beginthread((void (*) (void *))cbCaller, 0, cbargs);
 #else
     pthread_create(&tid, NULL, cbCaller, cbargs);
 #endif
@@ -441,7 +441,7 @@ void connectionStartAutoDispatch(Connection *conn) {
     cbs[i]->args->numSubs = &(conn->numSubs);
 
 #ifdef _WIN32
-    cbs[i]->tid = (TID)_beginthread(dispatcher, 0, cbs[i]->args);
+    cbs[i]->tid = (TID)_beginthread((void (*) (void *))dispatcher, 0, cbs[i]->args);
 #else
     pthread_create(&(cbs[i]->tid), NULL, dispatcher, cbs[i]->args);
 #endif
@@ -535,7 +535,7 @@ TID connectionSend(Connection *conn, Message *msg) {
     TID tid;
 #ifdef _WIN32
     args->hPipePtr = &conn->hPipe;
-    tid = _beginthread(writer, 0, args);
+    tid = (TID)_beginthread((void (*) (void *))writer, 0, args);
 #else
     pthread_create(&tid, NULL, writer, args);
 #endif
